@@ -18,7 +18,8 @@
   },
   "homepage": "https://github.com/raymond-w-ko/speedster#readme",
   "dependencies": {
-    "jquery": "^3.2.1"
+    "jquery": "^3.2.1",
+    "setimmediate": "^1.0.5"
   },
   "devDependencies": {
     "css-loader": "^0.28.7",
