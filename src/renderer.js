@@ -44,27 +44,36 @@ function repeat(letter, num) {
 
 ////////////////////////////////////////
 
-var words = null;
-var wordIndex = -1;
+var Words = [];
+var WordIndex = -1;
+var LoopActive = false;
+var LoopTimer = null;
 
-function ShowWord() {
-  var word = words[wordIndex];
-  if (!word) {
-    exports.$wordPrefix.empty();
-    exports.$wordCenter.empty();
-    exports.$wordSuffix.empty();
+function SetWord() {
+  var fullWord = Words[WordIndex];
+  if (!fullWord) {
+    dom.$wordPrefix.empty();
+    dom.$wordCenter.empty();
+    dom.$wordSuffix.empty();
     return;
   }
 
-  var n = word.length;
-  var bestLetterIndex = getBestLetterIndex(word);
+  var puncPrefix = "";
+  var word = fullWord;
+  var puncSuffix = "";
+  var r = /(\W*)([a-zA-Z0-9—\-’']+)(\W*)/;
+  var m = r.exec(fullWord);
+  if (m) {
+    puncPrefix = m[1];
+    word = m[2];
+    puncSuffix = m[3];
+  }
 
-  var prefix = word.substring(0, bestLetterIndex);
-  // if (prefix.length < NumLettersBeforeCenter) {
-  //   prefix = repeat("\xa0", NumLettersBeforeCenter - prefix.length) + prefix;
-  // }
-  var center = word.charAt(bestLetterIndex);
-  var suffix = word.substring(bestLetterIndex + 1, n);
+  var bestLetterIndex = puncPrefix.length + getBestLetterIndex(word);
+
+  var prefix = fullWord.substring(0, bestLetterIndex);
+  var center = fullWord.charAt(bestLetterIndex);
+  var suffix = fullWord.substring(bestLetterIndex + 1);
 
   var halfWidth = Font.getStringWidth(prefix)
   halfWidth += Font.getStringWidth(center) / 2;
@@ -77,6 +86,47 @@ function ShowWord() {
   dom.$wordSuffix.text(suffix);
 }
 
+function GetWord() {
+  return Words[WordIndex] || "";
+}
+
+var PauseChars = {
+  ",": true,
+  ".": true,
+  "?": true,
+  "!": true,
+  ":": true,
+  "\"": true,
+  "“": true,
+  "”": true,
+  "—": true,
+}
+
+function WordPresentLoop() {
+  WordIndex += 1;
+  SetWord();
+  var word = GetWord();
+  if (word.length === 0){
+    LoopActive = false;
+    return;
+  }
+  var wpm = dom.wpm 
+  var wps = wpm / 60;
+  var spw = 1 / wps;
+  var ms = 1000 * spw;
+  var n = word.length;
+  var end = word.substring(n - 1);
+  if (n > 8) {
+    ms *= 1.5;
+  }
+  if (end in PauseChars) {
+    ms *= 3;
+  }
+  LoopTimer = setTimeout(WordPresentLoop, ms);
+}
+
+////////////////////////////////////////
+
 exports.LoadText = function(text) {
   if (!Font.GlyphsMeasured) {
     setTimeout(function() {
@@ -85,16 +135,29 @@ exports.LoadText = function(text) {
     return;
   }
 
-  words = text.split(/\s+/).filter(function(w) {
+  Words = text.split(/\s+/).filter(function(w) {
     return w && w.length > 0;
   });
-  wordIndex = 0;
+  WordIndex = 0;
 
-  ShowWord();
+  SetWord();
 }
 
 exports.TogglePlay = function() {
-
+  if (!LoopActive) {
+    if (WordIndex >= Words.length) {
+      WordIndex = 0;
+      SetWord();
+    }
+    LoopTimer = setTimeout(WordPresentLoop, 1);
+    LoopActive = true;
+  } else {
+    if (LoopTimer) {
+      clearTimeout(LoopTimer);
+      LoopTimer = null;
+      LoopActive = false;
+    }
+  }
 }
 
 exports.RewindToPreviousSentence = function() {

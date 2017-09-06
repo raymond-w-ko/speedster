@@ -31,8 +31,15 @@ exports.createDOM = function() {
     var $option = $("<option/>").val(wpm).text(wpm + " WPM").appendTo(exports.$speeds);
   }
   exports.$speeds.val(500);
+  exports.wpm = 500;
+  exports.$speeds.on("change", function() {
+    exports.wpm = this.value;
+  });
 
   exports.$play = $("<button/>").text("Play").appendTo($controls);
+  exports.$play.on("click", function() {
+    Renderer.TogglePlay();
+  });
   exports.$ruler = $("<div/>").addClass("ruler").appendTo($root);
 
   exports.$body.on("keydown", function(e) {

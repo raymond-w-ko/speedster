@@ -8,9 +8,29 @@ var GlyphWidths = {};
 
 exports.GlyphsMeasured = false;
 
+var CharCodes = [];
+for (var i = 0; i <= 255; ++i) {
+  CharCodes.push(i);
+}
+var PauseChars = {
+  ",": true,
+  ".": true,
+  "?": true,
+  "!": true,
+  ":": true,
+  "\"": true,
+  "“": true,
+  "”": true,
+  "—": true,
+}
+for (var k in PauseChars) {
+  var code = k.charCodeAt(0);
+  CharCodes.push(code);
+}
+
 var glyphIndex = 0;
 function MeasureLoop() {
-  if (glyphIndex >= 512) {
+  if (glyphIndex >= CharCodes.length) {
     exports.GlyphsMeasured = true;
     return;
   }
@@ -18,14 +38,15 @@ function MeasureLoop() {
     setTimeout(MeasureLoop, 500);
     return;
   }
-  var letter = String.fromCharCode(glyphIndex);
+  var code = CharCodes[glyphIndex];
+  var letter = String.fromCharCode(code);
   var $ruler = dom.$ruler;
   $ruler.empty();
   var $span = $("<span/>").text(letter).appendTo($ruler);
   $span.ready(function() {
     var w = $span[0].getBoundingClientRect().width;
-    console.log("char: " + glyphIndex + " width: " + w);
-    GlyphWidths[glyphIndex] = w;
+    // console.log("char: " + code + " width: " + w);
+    GlyphWidths[code] = w;
     $span.remove();
 
     glyphIndex += 1;
